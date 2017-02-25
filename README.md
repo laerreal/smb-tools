@@ -25,7 +25,7 @@ created in the directory of script. Its name will be composed of:
 * remote name (without domain suffix).
 
 
-Neither `smb-mount` nor a shortcut must not be called using `sudo` or with
+Neither `smb-mount` nor a shortcut must be called using `sudo` or with
 other explicit rights assignment. It will call `sudo` itself when it is
 actually needed.
 
@@ -35,11 +35,16 @@ actually needed.
 
 ### Example 1
 Assume the script is placed in `/usr/bin`. Given remote `MyNAS` with share
-`Films` one can use command `smb-mount mynas films`.
+`Films` one can use command:
+
+`smb-mount mynas films`
 
 Remote: `mynas`
+
 Share: `films`
+
 Mount point: `/mnt/smb/mynas/films`
+
 Shortcut: `/usr/bin/smbm-films-on-mynas`
 
 Note that using lowercase name equivalents is allowed by Samba while
@@ -47,8 +52,10 @@ Note that using lowercase name equivalents is allowed by Samba while
 
 ### Example 2
 Given remote `MyOrgServer` with share `Documetns` one assigned domain `staff`,
-may use command `smb-mount MyOrgServer:staff Documetns`.
+may use command:
+
+`smb-mount MyOrgServer:staff Documetns`
 
 Mount point: `/mnt/smb/MyOrgServer/Documetns`
-Shortcut: `/usr/bin/smbm-Documetns-on-MyOrgServer`
 
+Shortcut: `/usr/bin/smbm-Documetns-on-MyOrgServer`
