@@ -1,0 +1,67 @@
+#!/bin/bash
+
+if [ "$1" = "" ] ; then
+    echo "Input remote as first argument"
+    exit
+fi
+
+if [ "$2" = "" ] ; then
+    echo "Input share as second argument"
+    exit
+fi
+
+Domain=`echo "$1" | sed -e 's/\([^:]*:\?\)\(.*\)/\2/g'`
+
+if ! [ "$Domain" == "" ] ; then
+    echo "Domain = $Domain"
+    DomainParam=",domain=$Domain"
+    Server=`echo "$1" | sed -e "s/\(.*\)\(:${Domain}\)/\1/g"`
+else
+    unset DomainParam
+    echo "No domain"
+    Server="$1"
+fi
+
+echo "Server = $Server"
+
+if ! [ -d "/mnt/smb" ] ; then
+    sudo mkdir "/mnt/smb"
+fi
+
+PlugdevGID=`cat /etc/group | grep plugdev | sed -e 's/[^0-9]//g'`
+
+if ! [ -d "/mnt/smb/${Server}" ] ; then
+    sudo mkdir "/mnt/smb/${Server}"
+fi
+
+if ! [ -d "/mnt/smb/${Server}/$2" ] ; then
+    sudo mkdir "/mnt/smb/${Server}/$2"
+    sudo chgrp plugdev "/mnt/smb/${Server}/$2"
+fi
+
+UserName=$(whoami)
+
+if sudo mount \
+        -t cifs \
+        -o username=${UserName}${DomainParam},rw,vers=2.0,file_mode=0775,dir_mode=0775,gid=${PlugdevGID} \
+        "//${Server}/$2" \
+        "/mnt/smb/${Server}/$2" ; then
+    echo "'//${Server}/$2' -> '/mnt/smb/${Server}/$2'"
+
+    SelfDir=`dirname "$0"`
+    ShortcutFile="${SelfDir}/smbm-$2-on-${Server}"
+
+    if ! [ -f "$ShortcutFile" ] ; then
+                echo "Creating shortcut '$ShortcutFile' owned by $UserName"
+
+        tmp_file=`mktemp`
+        cat >> "$tmp_file" << EOF
+#!/bin/bash
+
+smb-mount "$1" "$2"
+EOF
+        sudo mv "$tmp_file" "$ShortcutFile"
+        sudo chmod 776 "$ShortcutFile"
+        sudo chown "$UserName" "$ShortcutFile"
+    fi
+fi
